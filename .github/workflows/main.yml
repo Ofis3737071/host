@@ -20,7 +20,7 @@ jobs:
           node-version: '18' # Ensure compatibility with Mineflayer
 
       - name: Install Dependencies
-        run: npm install
+        run: npm install mineflayer
 
       - name: Run Minecraft Bot
         run: |
