@@ -1,51 +1,31 @@
-name: Setup Server Blockmango Remake
+name: Minecraft Bot
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:  # Add this to allow manual triggering from GitHub UI
+  workflow_dispatch:
 
 jobs:
-  setup-vps:
-    runs-on: windows-latest
+  run-bot:
+    runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-    - name: Set up hk3u-Vserver (Optional)
-      run: |
-        # Tải và cài đặt ngrok
-        Invoke-WebRequest -Uri https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip -OutFile ngrok.zip
-        Expand-Archive ngrok.zip -DestinationPath "C:\ngrok"
-        Remove-Item ngrok.zip
-        # Cấu hình với Authtoken từ GitHub Secrets
-        C:\ngrok\ngrok.exe authtoken 2oNImUjD3xvGb1lxFOqTf05cNpP_2arfEX5DtHB2WmYniYk2R
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18' # Ensure compatibility with Mineflayer
 
-    - name: Start service
-      run: |
-        # Khởi động dịch vụ Server
-        Start-Service -Name 'TermService'
+      - name: Install Dependencies
+        run: npm install
 
-    - name: Set Server
-      run: |
-        # Cấu hình User và Password
-        net user hk3u 123456Hi@@ /add
-        net localgroup "Remote Desktop Users" $user /add
-        net localgroup Administrators Hk3u /add
-
-    - name: Set max player
-      run: |
-        # Mở port 3389 trong tường lửa Windows
-        New-NetFirewallRule -DisplayName "Allow RDP" -Direction Inbound -Protocol TCP -Action Allow -LocalPort 3389
-        C:\ngrok\ngrok.exe tcp 3389
-
-    - name: Keep session alive
-      run: |
-        # Giữ kết nối RDP sống liên tục
-        while ($true) {
-            Write-Output "RDP session is alive."
-            Start-Sleep -Seconds 60 # Kiểm tra mỗi 60 giây
-        }
-        
+      - name: Run Minecraft Bot
+        run: |
+          echo "Starting the bot..."
+          while true; do
+            node bot.js || echo "Bot crashed, restarting..."
+            sleep 10 # Wait 10 seconds before restarting the bot
+          done
